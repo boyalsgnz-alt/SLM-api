@@ -13,7 +13,7 @@ import { AuthModule } from './auth/auth.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        uri: `mongodb://gaetan:ntxEetOa@localhost:27017/slm?authSource=admin`,
+        uri: `mongodb://${configService.getOrThrow('DB_USER')}:${configService.getOrThrow('DB_PASSWORD')}@localhost:27017/slm?authSource=admin`,
       }),
     }),
     UserModule,
