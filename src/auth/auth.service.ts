@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../users/user.service';
-import { User, UserDocument } from '../schemas/user.schema';
+import { User } from '../schemas/user.schema';
 import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 
 type LoginObject = {
@@ -57,11 +56,14 @@ export class AuthService {
       iat: Math.floor(issuedAt.getTime() / 1000),
       exp: Math.floor(refreshExpAt.getTime() / 1000),
     };
+    const refreshToken = this.jwtService.sign(refreshTokenPayload, {
+      secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
+    });
+    const token = this.jwtService.sign(tokenPayload);
+    await this.userService.updateRefreshToken(refreshToken, user._id);
     return {
-      token: this.jwtService.sign(tokenPayload),
-      refreshToken: this.jwtService.sign(refreshTokenPayload, {
-        secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
-      }),
+      token,
+      refreshToken,
     };
   }
 }
