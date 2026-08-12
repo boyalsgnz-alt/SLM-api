@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -27,4 +28,10 @@ export class UserController {
   async getAll(): Promise<User[]> {
     return this.userService.getAllUsers();
   }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Patch('/me')
+  // async patchMe(): Promise<User> {
+  //   return this.userService.patchMe();
+  // }
 }

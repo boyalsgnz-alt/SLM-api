@@ -2,10 +2,11 @@ import { Injectable, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import bcrypt from 'bcrypt';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import * as mongoose from 'mongoose';
 
 @Injectable()
 export class UserService {
@@ -33,5 +34,16 @@ export class UserService {
     const usr = await this.userModel.findOne({ email }).lean().exec();
     if (usr) return usr;
     return null;
+  }
+
+  async updateRefreshToken(
+    token: string,
+    userId: mongoose.Types.ObjectId,
+  ): Promise<boolean> {
+    const res = await this.userModel
+      .updateOne({ _id: userId }, { refresh_token: token })
+      .exec();
+    console.log(res);
+    return true;
   }
 }
