@@ -5,15 +5,16 @@ import {
   Organization,
   OrganizationDocument,
 } from '../schemas/organization.schema';
-import { UserDocument } from '../schemas/user.schema';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { AuthenticatedUser } from '../auth/types/authenticated-user.type';
+import { UserService } from '../users/user.service';
 
 @Injectable()
 export class OrganizationService {
   constructor(
     @InjectModel('Organization')
     private readonly organizationModel: Model<OrganizationDocument>,
+    private readonly userService: UserService,
   ) {}
 
   async getMyOrganizations(
@@ -31,12 +32,18 @@ export class OrganizationService {
 
   async createOrganization(
     orgDto: CreateOrganizationDto,
-    usr: Partial<UserDocument>,
+    usr: AuthenticatedUser,
   ): Promise<OrganizationDocument> {
-    return this.organizationModel.create({
+    const org = new this.organizationModel({
       ...orgDto,
       createdBy: usr._id,
       owner: usr._id,
     });
+    const orgDoc = await org.save();
+
+    if (orgDoc) {
+      await this.userService.updateMe(usr._id, { type: 'Owner' });
+    }
+    return orgDoc;
   }
 }

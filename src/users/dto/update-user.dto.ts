@@ -6,4 +6,7 @@ export class UpdateUserDto {
 
   @ApiProperty()
   age: number;
+
+  @ApiProperty()
+  type: string;
 }

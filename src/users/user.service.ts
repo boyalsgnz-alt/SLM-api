@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import bcrypt from 'bcrypt';
 import * as mongoose from 'mongoose';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -50,5 +51,12 @@ export class UserService {
       return true;
     }
     return false;
+  }
+
+  async updateMe(
+    id: Types.ObjectId,
+    userDto: Partial<UpdateUserDto>,
+  ): Promise<void> {
+    return this.userModel.updateOne({ _id: id }, userDto).exec();
   }
 }
