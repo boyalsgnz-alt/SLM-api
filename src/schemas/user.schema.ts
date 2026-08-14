@@ -21,6 +21,9 @@ export class User {
 
   @Prop()
   refresh_token: string;
+
+  @Prop({ default: 'undefined' })
+  type: 'Owner' | 'Regular' | 'undefined';
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

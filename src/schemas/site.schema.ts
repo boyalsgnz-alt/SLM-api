@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import * as Mongoose from 'mongoose';
 import { Organization } from './organization.schema';
+import { User } from './user.schema';
 
 export type SiteDocument = Mongoose.HydratedDocument<Site>;
 
@@ -11,6 +12,12 @@ export class Site {
 
   @Prop()
   name: string;
+
+  @Prop({ type: Mongoose.Schema.Types.ObjectId, ref: 'User' })
+  createdBy: User;
+
+  @Prop({ type: Mongoose.Schema.Types.ObjectId, ref: 'User' })
+  owner: User;
 }
 
 export const SiteSchema = SchemaFactory.createForClass(Site);

@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../users/user.service';
+import { AuthenticatedUser } from './types/authenticated-user.type';
 
 const testExtract = (req: Request): string => {
   return req.cookies.access_token;
@@ -26,10 +27,10 @@ class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload) {
+  async validate(payload): Promise<AuthenticatedUser> {
     const user = await this.usersService.getMe(payload.sub);
     if (!user) throw new UnauthorizedException();
-    return user; // <-- this gets attached to req.user by Passport
+    return { _id: user._id, email: user.email };
   }
 }
 

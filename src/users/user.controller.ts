@@ -4,7 +4,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -12,6 +11,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
 import { User } from '../schemas/user.schema';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../decorators/roles.decorator';
+import { RolesGuard } from '../guards/roles.guard';
 
 @Controller('users')
 export class UserController {
@@ -23,7 +24,8 @@ export class UserController {
     await this.userService.createUser(userDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(['admin'])
   @Get()
   async getAll(): Promise<User[]> {
     return this.userService.getAllUsers();

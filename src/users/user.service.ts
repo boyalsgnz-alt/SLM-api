@@ -1,11 +1,10 @@
-import { Injectable, UseGuards } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import bcrypt from 'bcrypt';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import * as mongoose from 'mongoose';
 
 @Injectable()
@@ -25,6 +24,10 @@ export class UserService {
     }
   }
 
+  async getMe(id: mongoose.Types.ObjectId): Promise<UserDocument | null> {
+    return this.userModel.findById(id);
+  }
+
   async getAllUsers(): Promise<User[]> {
     const usrs = await this.userModel.find();
     return usrs;
@@ -40,10 +43,12 @@ export class UserService {
     token: string,
     userId: mongoose.Types.ObjectId,
   ): Promise<boolean> {
-    const res = await this.userModel
+    const requestRes = await this.userModel
       .updateOne({ _id: userId }, { refresh_token: token })
       .exec();
-    console.log(res);
-    return true;
+    if (requestRes.modifiedCount === 1) {
+      return true;
+    }
+    return false;
   }
 }

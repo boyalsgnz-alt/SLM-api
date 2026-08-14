@@ -18,6 +18,9 @@ export class SiteMembership {
   role: 'Tradie' | 'Labourer' | 'Site Manager' | 'Admin';
 
   @Prop()
+  specialization: 'Electrician' | 'Plumber' | 'Other';
+
+  @Prop()
   startDate: Date;
 
   @Prop()
