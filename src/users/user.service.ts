@@ -60,4 +60,11 @@ export class UserService {
     const user = await this.userModel.updateOne({ _id: id }, userDto).exec();
     return user.modifiedCount === 1;
   }
+
+  async logout(id: Types.ObjectId): Promise<boolean> {
+    const user = await this.userModel
+      .updateOne({ _id: id }, { refresh_token: null })
+      .exec();
+    return user.modifiedCount === 1;
+  }
 }

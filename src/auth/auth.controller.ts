@@ -1,12 +1,19 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Post, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { User } from '../schemas/user.schema';
 import { LoginDto } from './dto/login.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { CurrentUser } from '../decorators/current-user.decorator';
+import type { AuthenticatedUser } from './types/authenticated-user.type';
+import { UserService } from '../users/user.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+  ) {}
 
   @Post('/login')
   async login(
@@ -37,5 +44,17 @@ export class AuthController {
       return user;
     }
     return null;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/logout')
+  async logout(
+    @Res({ passthrough: true }) res: Response,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<boolean> {
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+    await this.userService.logout(currentUser._id);
+    return true;
   }
 }
