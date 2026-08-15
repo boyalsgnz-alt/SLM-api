@@ -4,11 +4,20 @@ import { User } from '../schemas/user.schema';
 import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { generateTokenPair } from '../utils/generateTokenPair';
 
 type LoginObject = {
   user: Partial<User>;
   token: string;
   refreshToken: string;
+};
+
+type JwtPayload = {
+  sub: string;
+  aud: string;
+  iss: string;
+  iat: number;
+  exp: number;
 };
 
 @Injectable()
@@ -37,30 +46,38 @@ export class AuthService {
   }
 
   async login(user: Omit<User, 'password'>) {
-    const issuedAt = new Date();
-    const tokenExpAt = new Date();
-    const refreshExpAt = new Date();
-    tokenExpAt.setMinutes(tokenExpAt.getMinutes() + 15);
-    refreshExpAt.setHours(refreshExpAt.getHours() + 24 * 7);
-    const tokenPayload = {
-      sub: user._id.toString(),
-      aud: 'SLMAPI',
-      iss: 'SLMAPI',
-      iat: Math.floor(issuedAt.getTime() / 1000),
-      exp: Math.floor(tokenExpAt.getTime() / 1000),
-    };
-    const refreshTokenPayload = {
-      sub: user._id.toString(),
-      aud: 'SLMAPI',
-      iss: 'SLMAPI',
-      iat: Math.floor(issuedAt.getTime() / 1000),
-      exp: Math.floor(refreshExpAt.getTime() / 1000),
-    };
+    const { tokenPayload, refreshTokenPayload } = generateTokenPair(
+      user._id.toString(),
+    );
     const refreshToken = this.jwtService.sign(refreshTokenPayload, {
       secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
     });
     const token = this.jwtService.sign(tokenPayload);
-    await this.userService.updateRefreshToken(refreshToken, user._id);
+    await this.userService.updateRefreshToken(
+      user._id.toString(),
+      refreshToken,
+    );
+    return {
+      token,
+      refreshToken,
+    };
+  }
+
+  async refreshToken(oldToken: string) {
+    const decodedToken = this.jwtService.decode<JwtPayload>(oldToken);
+    console.log(decodedToken);
+    const usr = await this.userService.getMeById(decodedToken.sub);
+    if (!usr) {
+      return null;
+    }
+    const { tokenPayload, refreshTokenPayload } = generateTokenPair(
+      usr._id.toString(),
+    );
+    const refreshToken = this.jwtService.sign(refreshTokenPayload, {
+      secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
+    });
+    const token = this.jwtService.sign(tokenPayload);
+    await this.userService.updateRefreshToken(usr._id.toString(), refreshToken);
     return {
       token,
       refreshToken,

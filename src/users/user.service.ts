@@ -25,7 +25,7 @@ export class UserService {
     }
   }
 
-  async getMe(id: mongoose.Types.ObjectId): Promise<UserDocument | null> {
+  async getMeById(id: string): Promise<UserDocument | null> {
     return this.userModel.findById(id);
   }
 
@@ -34,23 +34,21 @@ export class UserService {
     return usrs;
   }
 
+  async getMeByRefresh(token: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ refresh_token: token });
+  }
+
   async getByEmail(email: string): Promise<User | null | undefined> {
     const usr = await this.userModel.findOne({ email }).lean().exec();
     if (usr) return usr;
     return null;
   }
 
-  async updateRefreshToken(
-    token: string,
-    userId: mongoose.Types.ObjectId,
-  ): Promise<boolean> {
+  async updateRefreshToken(userId: string, newToken: string): Promise<boolean> {
     const requestRes = await this.userModel
-      .updateOne({ _id: userId }, { refresh_token: token })
+      .updateOne({ _id: userId }, { refresh_token: newToken })
       .exec();
-    if (requestRes.modifiedCount === 1) {
-      return true;
-    }
-    return false;
+    return requestRes.modifiedCount === 1;
   }
 
   async updateMe(
