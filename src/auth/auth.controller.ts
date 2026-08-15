@@ -54,7 +54,7 @@ export class AuthController {
   ): Promise<boolean> {
     res.clearCookie('access_token');
     res.clearCookie('refresh_token');
-    await this.userService.logout(currentUser._id);
+    await this.userService.updateRefreshToken(currentUser._id.toString(), null);
     return true;
   }
 
