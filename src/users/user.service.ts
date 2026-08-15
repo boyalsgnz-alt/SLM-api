@@ -21,7 +21,7 @@ export class UserService {
       const usr = new this.userModel({ ...userDto, password: hash });
       await usr.save();
     } catch (error) {
-      console.log('ISSOU');
+      console.log(error);
     }
   }
 

@@ -65,7 +65,6 @@ export class AuthService {
 
   async refreshToken(oldToken: string) {
     const decodedToken = this.jwtService.decode<JwtPayload>(oldToken);
-    console.log(decodedToken);
     const usr = await this.userService.getMeById(decodedToken.sub);
     if (!usr) {
       return null;
