@@ -28,7 +28,6 @@ class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   }
 
   async validate(payload): Promise<AuthenticatedUser> {
-    console.log(payload);
     const user = await this.usersService.getMeById(payload.sub);
     if (!user) throw new UnauthorizedException();
     return { _id: user._id, email: user.email };

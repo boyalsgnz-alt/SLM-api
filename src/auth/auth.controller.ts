@@ -85,7 +85,6 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
   ): Promise<GenericResponse<any>> {
-    console.log('refresh route hit');
     const refreshState = await this.authService.refreshToken(
       req.cookies['refresh_token'],
     );
