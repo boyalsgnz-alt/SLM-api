@@ -7,6 +7,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import type { Response, Request } from 'express';
@@ -55,7 +56,7 @@ export class AuthController {
       });
       return new GenericResponse('login successful', user);
     }
-    throw new NotFoundException('User not found');
+    throw new UnauthorizedException('User not found');
   }
 
   @UseGuards(JwtAuthGuard)
@@ -65,8 +66,8 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<GenericResponse<any>> {
-    res.clearCookie('access_token');
-    res.clearCookie('refresh_token');
+    res.clearCookie('access_token', { path: '' });
+    res.clearCookie('refresh_token', { path: '/auth/refresh' });
     const updated = await this.userService.updateRefreshToken(
       currentUser._id.toString(),
       null,
