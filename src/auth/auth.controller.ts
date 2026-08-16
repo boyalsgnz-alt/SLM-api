@@ -18,6 +18,7 @@ import { CurrentUser } from '../decorators/current-user.decorator';
 import type { AuthenticatedUser } from './types/authenticated-user.type';
 import { UserService } from '../users/user.service';
 import { GenericResponse } from '../common/SLMResponses';
+import { JwtAuthRefreshGuard } from './jwt-refresh-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -76,13 +77,14 @@ export class AuthController {
     throw new InternalServerErrorException('Error while trying to logout');
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthRefreshGuard)
   @Post('/refresh')
   @HttpCode(200)
   async refreshToken(
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
   ): Promise<GenericResponse<any>> {
+    console.log('refresh route hit');
     const refreshState = await this.authService.refreshToken(
       req.cookies['refresh_token'],
     );
