@@ -1,4 +1,14 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  InternalServerErrorException,
+  NotFoundException,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { User } from '../schemas/user.schema';
@@ -7,6 +17,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import type { AuthenticatedUser } from './types/authenticated-user.type';
 import { UserService } from '../users/user.service';
+import { GenericResponse } from '../common/SLMResponses';
 
 @Controller('auth')
 export class AuthController {
@@ -19,7 +30,7 @@ export class AuthController {
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<Partial<User> | null> {
+  ): Promise<GenericResponse<Partial<User>>> {
     const loginInfo = await this.authService.validateUser(
       loginDto.email,
       loginDto.password,
@@ -41,34 +52,42 @@ export class AuthController {
         path: '/auth/refresh',
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-      return user;
+      return new GenericResponse('login successful', user);
     }
-    return null;
+    throw new NotFoundException('User not found');
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('/logout')
+  @HttpCode(200)
   async logout(
     @Res({ passthrough: true }) res: Response,
     @CurrentUser() currentUser: AuthenticatedUser,
-  ): Promise<boolean> {
+  ): Promise<GenericResponse<any>> {
     res.clearCookie('access_token');
     res.clearCookie('refresh_token');
-    await this.userService.updateRefreshToken(currentUser._id.toString(), null);
-    return true;
+    const updated = await this.userService.updateRefreshToken(
+      currentUser._id.toString(),
+      null,
+    );
+    if (updated) {
+      return new GenericResponse('logout successful', undefined);
+    }
+    throw new InternalServerErrorException('Error while trying to logout');
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('/refresh')
+  @HttpCode(200)
   async refreshToken(
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
-  ): Promise<boolean> {
+  ): Promise<GenericResponse<any>> {
     const refreshState = await this.authService.refreshToken(
       req.cookies['refresh_token'],
     );
     if (refreshState) {
-      const { token, refreshToken } = refreshState;
+      const { token, refreshToken, user } = refreshState;
       res.cookie('access_token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -84,8 +103,8 @@ export class AuthController {
         path: '/auth/refresh',
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
+      return new GenericResponse('token refreshed', user);
     }
-
-    return true;
+    throw new InternalServerErrorException('Token not refreshed');
   }
 }

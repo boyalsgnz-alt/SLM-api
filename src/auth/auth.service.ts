@@ -77,9 +77,11 @@ export class AuthService {
     });
     const token = this.jwtService.sign(tokenPayload);
     await this.userService.updateRefreshToken(usr._id.toString(), refreshToken);
+    const { password, ...user } = usr;
     return {
       token,
       refreshToken,
+      user,
     };
   }
 }
