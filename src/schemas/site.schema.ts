@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import * as Mongoose from 'mongoose';
 import { Organization } from './organization.schema';
 import { User } from './user.schema';
+import { Address } from './address.schema';
 
 export type SiteDocument = Mongoose.HydratedDocument<Site>;
 
@@ -18,6 +19,9 @@ export class Site {
 
   @Prop({ type: Mongoose.Schema.Types.ObjectId, ref: 'User' })
   owner: User;
+
+  @Prop({ type: Mongoose.Schema.Types.ObjectId, ref: 'address' })
+  address: Address;
 }
 
 export const SiteSchema = SchemaFactory.createForClass(Site);

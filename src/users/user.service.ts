@@ -16,7 +16,7 @@ export class UserService {
 
   async createUser(userDto: CreateUserDto): Promise<void> {
     try {
-      const hash = bcrypt.hashSync(userDto.password, 10) as string;
+      const hash = bcrypt.hashSync(userDto.password, 10);
       const usr = new this.userModel({ ...userDto, password: hash });
       await usr.save();
     } catch (error) {
