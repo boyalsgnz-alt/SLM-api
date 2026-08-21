@@ -1,8 +1,9 @@
 import { HydratedDocument } from 'mongoose';
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 export type AddressDocument = HydratedDocument<Address>;
 
+@Schema({ _id: false })
 export class Address {
   @Prop()
   street: string;
