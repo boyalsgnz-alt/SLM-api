@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
-import { User } from '../schemas/user.schema';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
@@ -19,6 +18,8 @@ import type { AuthenticatedUser } from './types/authenticated-user.type';
 import { UserService } from '../users/user.service';
 import { GenericResponse } from '../common/SLMResponses';
 import { JwtAuthRefreshGuard } from './jwt-refresh-auth.guard';
+import { UserResponseDto } from '../users/dto/user-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('auth')
 export class AuthController {
@@ -31,7 +32,7 @@ export class AuthController {
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<GenericResponse<Partial<User>>> {
+  ): Promise<GenericResponse<Partial<UserResponseDto>>> {
     const loginInfo = await this.authService.validateUser(
       loginDto.email,
       loginDto.password,
@@ -53,7 +54,10 @@ export class AuthController {
         path: '/auth/refresh',
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-      return new GenericResponse('login successful', user);
+      return new GenericResponse(
+        'login successful',
+        plainToInstance(UserResponseDto, user),
+      );
     }
     throw new UnauthorizedException('User not found');
   }
@@ -65,7 +69,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<GenericResponse<any>> {
-    res.clearCookie('access_token', { path: '' });
+    res.clearCookie('access_token', { path: '/' });
     res.clearCookie('refresh_token', { path: '/auth/refresh' });
     const updated = await this.userService.updateRefreshToken(
       currentUser._id.toString(),
@@ -104,7 +108,10 @@ export class AuthController {
         path: '/auth/refresh',
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-      return new GenericResponse('token refreshed', user);
+      return new GenericResponse(
+        'token refreshed',
+        plainToInstance(UserResponseDto, user),
+      );
     }
     throw new InternalServerErrorException('Token not refreshed');
   }

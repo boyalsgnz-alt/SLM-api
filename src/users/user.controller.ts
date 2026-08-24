@@ -18,6 +18,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { plainToInstance } from 'class-transformer';
 import { UserResponseDto } from './dto/user-response.dto';
+import { GenericResponse } from '../common/SLMResponses';
 
 @Controller('users')
 export class UserController {
@@ -38,18 +39,28 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/me')
-  async getMe(@CurrentUser() user: User): Promise<UserResponseDto> {
+  @HttpCode(HttpStatus.OK)
+  async getMe(
+    @CurrentUser() user: User,
+  ): Promise<GenericResponse<UserResponseDto>> {
     const usr = await this.userService.getMeById(user._id.toString());
-    return plainToInstance(UserResponseDto, usr);
+    return new GenericResponse(
+      'User found',
+      plainToInstance(UserResponseDto, usr),
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('/me')
+  @HttpCode(HttpStatus.OK)
   async patchMe(
     @CurrentUser() user: User,
     @Body() userDto: Partial<UpdateUserDto>,
-  ): Promise<UserResponseDto> {
+  ): Promise<GenericResponse<UserResponseDto>> {
     const usr = await this.userService.updateMe(user._id, userDto);
-    return plainToInstance(UserResponseDto, usr);
+    return new GenericResponse(
+      'User updated',
+      plainToInstance(UserResponseDto, usr),
+    );
   }
 }

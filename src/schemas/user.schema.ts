@@ -15,6 +15,9 @@ export class User {
   name: string;
 
   @Prop()
+  genre: string;
+
+  @Prop()
   birthdate: Date;
 
   @Prop({ required: true })
@@ -23,8 +26,11 @@ export class User {
   @Prop()
   refresh_token: string;
 
-  @Prop({ default: true })
-  needsSetup: boolean;
+  @Prop({ default: false })
+  setupCompleted: boolean;
+
+  @Prop({ default: 0 })
+  setupStep: number;
 
   @Prop({ type: AddressSchema })
   address: Address;

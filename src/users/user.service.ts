@@ -59,6 +59,7 @@ export class UserService {
         { $set: userDto },
         { returnDocument: 'after' },
       )
+      .populate('address')
       .lean()
       .exec();
     if (user) {
